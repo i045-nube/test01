@@ -14,6 +14,10 @@
             --color-text: #FFFFFF;
             --font-text: "Factoria", "Rockwell", "Roboto Slab", "Segoe UI", sans-serif;
             --font-display: "Factoria", "Impact", "Arial Black", sans-serif;
+            --font-weight-bold: 900;
+            /* Factoria Ultra equivalent */
+            --font-weight-medium: 500;
+            /* Factoria Medium equivalent */
             --glow-primary: 0 0 20px rgba(255, 220, 0, 0.15);
             --glass-bg: rgba(255, 255, 255, 0.03);
             --glass-border: 1px solid rgba(255, 255, 255, 0.08);
@@ -35,7 +39,7 @@
             background-image: var(--color-bg-gradient);
             color: var(--color-text);
             font-family: var(--font-text);
-            font-weight: 500;
+            font-weight: var(--font-weight-medium);
             height: 100dvh;
             width: 100vw;
             overflow: hidden;
@@ -180,29 +184,33 @@
         .header-row {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 1.5rem;
+            justify-content: space-between;
+            /* Push buttons to edges */
+            gap: 1rem;
             width: 100%;
             max-width: 600px;
             margin-top: 1rem;
             margin-bottom: 1rem;
-            padding: 0 1rem;
+            padding: 0 1.5rem;
+            /* Extra padding for edge breathing room */
         }
 
         .tab-btn {
-            width: 65px;
-            height: 65px;
-            border-radius: 50%;
+            width: 80px;
+            height: 60px;
+            border-radius: 12px;
+            /* Square with rounded corners */
             padding: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.6);
             border: var(--glass-border);
             color: #888;
             font-family: var(--font-display);
-            font-weight: 900;
-            font-size: 0.75rem;
+            font-weight: var(--font-weight-bold);
+            font-size: 1.4rem;
+            /* Double size roughly */
             text-transform: uppercase;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -213,7 +221,7 @@
         }
 
         .tab-btn:hover {
-            transform: scale(1.1);
+            transform: translateY(-2px);
             color: white;
             border-color: rgba(255, 255, 255, 0.3);
         }
@@ -223,7 +231,17 @@
             color: black;
             background: var(--color-primary);
             box-shadow: 0 0 20px rgba(255, 220, 0, 0.4);
-            transform: scale(1.1);
+            transform: translateY(-2px);
+        }
+
+        /* Hide buttons when timer is running */
+        body.timer-running .tab-btn {
+            display: none !important;
+        }
+
+        /* Adjust header row alignment when buttons are hidden */
+        body.timer-running .header-row {
+            justify-content: center;
         }
 
         /* --- PERSISTENT TITLE --- */
@@ -243,7 +261,7 @@
             font-size: 3.5rem;
             /* Massive */
             line-height: 0.9;
-            font-weight: 900;
+            font-weight: var(--font-weight-bold);
             /* Ultra */
             text-transform: uppercase;
             letter-spacing: 2px;
@@ -256,7 +274,7 @@
             font-family: var(--font-display);
             color: #FFFFFF;
             font-size: 1.2rem;
-            font-weight: 900;
+            font-weight: var(--font-weight-medium);
             text-transform: uppercase;
             letter-spacing: 6px;
             opacity: 0.9;
@@ -414,10 +432,12 @@
             padding-top: 240px;
             /* Push content down below header */
             align-items: center;
-            background: rgba(12, 12, 12, 0.98);
-            /* Higher opacity */
+            background: rgba(12, 12, 12, 0.95);
+            /* opacity slightly lower to see background mesh if needed, but clean */
             z-index: 1000;
             margin: 0;
+            gap: 2rem;
+            /* Add spacing between elements */
             border-radius: 0;
             border: none;
             backdrop-filter: blur(15px);
@@ -636,8 +656,8 @@
             }
 
             to {
-                transform: translateY(0);
                 opacity: 1;
+                transform: translateY(0);
             }
         }
 
@@ -747,17 +767,17 @@
                 gap: 0.5rem;
                 margin-top: 0.5rem;
                 margin-bottom: 0.5rem;
+                padding: 0 0.5rem;
             }
 
             .tab-btn {
-                width: 50px;
+                width: 60px;
                 height: 50px;
-                font-size: 0.6rem;
+                font-size: 1rem;
             }
 
             .timer-display {
                 padding-top: 200px;
-                /* Less padding on small screens if header is smaller */
             }
         }
     </style>
@@ -1126,6 +1146,10 @@
             STATE.paused = false;
             ELEMENTS.timer.container.classList.remove('paused');
             ELEMENTS.timer.pause.innerText = "PAUSA";
+
+            // UI State for running timer
+            document.body.classList.add('timer-running');
+
             loop();
         }
 
@@ -1317,6 +1341,7 @@
             cancelAnimationFrame(STATE.intervalId);
             STATE.status = 'idle';
             ELEMENTS.timer.container.classList.add('hidden');
+            document.body.classList.remove('timer-running');
         });
 
         ELEMENTS.timer.pause.addEventListener('click', (e) => {
