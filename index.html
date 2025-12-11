@@ -79,6 +79,57 @@
             display: none !important;
         }
 
+        /* Compact Mobile Tweaks */
+        @media (max-width: 600px) {
+            .app-header {
+                padding-bottom: 0.2rem;
+            }
+
+            .logo {
+                height: 60px;
+                /* Smaller logo */
+            }
+
+            .title-main {
+                font-size: 2.2rem;
+                /* Smaller title */
+            }
+
+            .title-sub {
+                font-size: 0.9rem;
+            }
+
+            .header-separator {
+                margin-bottom: 0.8rem;
+                /* Less gap */
+            }
+
+            .tabs {
+                margin-bottom: 0.8rem;
+                /* Less gap */
+            }
+
+            .title-container {
+                min-height: auto;
+                margin-bottom: 0.5rem;
+            }
+
+            .content-container {
+                padding-top: 0.5rem;
+                /* Ensure start button is visible */
+            }
+
+            input {
+                padding: 0.5rem;
+                font-size: 1.5rem;
+            }
+
+            .btn-start {
+                padding: 0.9rem;
+                /* Slightly smaller button */
+            }
+        }
+
         /* --- HEADER SECTION --- */
         /* Contains Logo -> Separator -> Tabs -> Title */
         .app-header {
@@ -326,23 +377,26 @@
             box-shadow: 0 2px 0 var(--color-primary-dim);
         }
 
-        /* --- TIMER OVERLAY (Inside Content) --- */
+        /* --- TIMER OVERLAY (Fixed) --- */
         .timer-display {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100dvh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: rgba(12, 12, 12, 0.9);
-            /* Darker to hide config behind */
-            backdrop-filter: blur(10px);
-            z-index: 10;
-            border-radius: 12px;
-            border: var(--glass-border);
+            background: rgba(12, 12, 12, 0.95);
+            /* Slightly darker */
+            /* Ensure it covers everything including header/footer */
+            z-index: 1000;
+            /* High z-index */
+            margin: 0;
+            border-radius: 0;
+            border: none;
+            backdrop-filter: blur(15px);
         }
 
         .timer-status {
@@ -602,11 +656,20 @@
         }
 
         .audio-setting label {
-            display: block;
-            text-align: left;
-            margin-bottom: 0.4rem;
-            font-size: 0.75rem;
             color: #CCC;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .status-indicator {
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #555;
+            text-transform: uppercase;
+        }
+
+        .status-indicator.loaded {
+            color: #00FF00;
         }
 
         .audio-input-wrapper {
@@ -678,25 +741,25 @@
             </div>
 
             <div class="audio-setting">
-                <label>Countdown (3-2-1)</label>
+                <label>Countdown (3-2-1) <span class="status-indicator" id="status-countdown">Default</span></label>
                 <div class="audio-input-wrapper">
                     <input type="file" accept="audio/*" class="audio-input" data-sound="countdown">
                 </div>
             </div>
             <div class="audio-setting">
-                <label>Inizio Round (Go)</label>
+                <label>Inizio Round (Go) <span class="status-indicator" id="status-start">Default</span></label>
                 <div class="audio-input-wrapper">
                     <input type="file" accept="audio/*" class="audio-input" data-sound="start">
                 </div>
             </div>
             <div class="audio-setting">
-                <label>Fine Round</label>
+                <label>Fine Round <span class="status-indicator" id="status-end">Default</span></label>
                 <div class="audio-input-wrapper">
                     <input type="file" accept="audio/*" class="audio-input" data-sound="end">
                 </div>
             </div>
             <div class="audio-setting">
-                <label>Fine Allenamento</label>
+                <label>Fine Allenamento <span class="status-indicator" id="status-finish">Default</span></label>
                 <div class="audio-input-wrapper">
                     <input type="file" accept="audio/*" class="audio-input" data-sound="finish">
                 </div>
@@ -765,20 +828,20 @@
             <button class="btn-start" id="startClassic">START TIMER</button>
         </div>
 
-        <!-- TIMER DISPLAY OVERLAY -->
-        <div id="timerDisplay" class="timer-display hidden">
-            <div class="timer-status" id="timerStatus">PREPARATI</div>
-            <div class="time-big" id="mainTime">00:00</div>
-            <div class="round-info hidden" id="roundInfo">Round 1/10</div>
+    </div>
 
-            <div class="paused-overlay">PAUSA</div>
+    <!-- TIMER DISPLAY OVERLAY (Moved to body level) -->
+    <div id="timerDisplay" class="timer-display hidden">
+        <div class="timer-status" id="timerStatus">PREPARATI</div>
+        <div class="time-big" id="mainTime">00:00</div>
+        <div class="round-info hidden" id="roundInfo">Round 1/10</div>
 
-            <div class="controls-container">
-                <button class="control-btn" id="quitTimer">RESET</button>
-                <button class="control-btn btn-pause" id="pauseBtn">PAUSA</button>
-            </div>
+        <div class="paused-overlay">PAUSA</div>
+
+        <div class="controls-container">
+            <button class="control-btn" id="quitTimer">RESET</button>
+            <button class="control-btn btn-pause" id="pauseBtn">PAUSA</button>
         </div>
-
     </div>
 
     <footer>
@@ -888,6 +951,19 @@
             request.onerror = (e) => console.error("DB Error", e);
         }
 
+        function updateStatus(key, isLoaded) {
+            const el = document.getElementById(`status-${key}`);
+            if (el) {
+                if (isLoaded) {
+                    el.innerText = "CUSTOM LOADED";
+                    el.classList.add('loaded');
+                } else {
+                    el.innerText = "DEFAULT";
+                    el.classList.remove('loaded');
+                }
+            }
+        }
+
         function saveSound(key, file, inputElement) {
             const reader = new FileReader();
             reader.onload = function (e) {
@@ -896,6 +972,7 @@
                 const store = tx.objectStore(STORE_NAME);
                 store.put(buffer, key);
                 decodeAndCache(key, buffer);
+                updateStatus(key, true); // Update indicator
 
                 // Visual feedback
                 if (inputElement) {
@@ -922,6 +999,7 @@
                 const cursor = e.target.result;
                 if (cursor) {
                     decodeAndCache(cursor.key, cursor.value);
+                    updateStatus(cursor.key, true); // Update indicator
                     cursor.continue();
                 }
             };
@@ -938,7 +1016,10 @@
             const tx = db.transaction(STORE_NAME, 'readwrite');
             const store = tx.objectStore(STORE_NAME);
             store.clear();
-            Object.keys(AUDIO_CACHE).forEach(k => delete AUDIO_CACHE[k]);
+            Object.keys(AUDIO_CACHE).forEach(k => {
+                delete AUDIO_CACHE[k];
+                updateStatus(k, false); // Reset indicators
+            });
             alert("Audio resettato.");
         }
 
