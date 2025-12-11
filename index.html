@@ -203,8 +203,11 @@
             justify-content: flex-start;
             /* Items start below header */
             z-index: 1;
-            overflow: hidden;
+            overflow-y: auto;
             padding-top: 1rem;
+            padding-bottom: 120px;
+            /* Space for footer + scrolling */
+            -webkit-overflow-scrolling: touch;
         }
 
         /* --- FORMS --- */
@@ -885,7 +888,7 @@
             request.onerror = (e) => console.error("DB Error", e);
         }
 
-        function saveSound(key, file) {
+        function saveSound(key, file, inputElement) {
             const reader = new FileReader();
             reader.onload = function (e) {
                 const buffer = e.target.result;
@@ -893,6 +896,20 @@
                 const store = tx.objectStore(STORE_NAME);
                 store.put(buffer, key);
                 decodeAndCache(key, buffer);
+
+                // Visual feedback
+                if (inputElement) {
+                    const wrapper = inputElement.closest('.audio-input-wrapper');
+                    if (wrapper) {
+                        wrapper.style.borderColor = '#00FF00';
+                        wrapper.style.boxShadow = '0 0 10px rgba(0,255,0,0.3)';
+                        // Reset after 2s
+                        setTimeout(() => {
+                            wrapper.style.borderColor = '#333';
+                            wrapper.style.boxShadow = 'none';
+                        }, 2000);
+                    }
+                }
             };
             reader.readAsArrayBuffer(file);
         }
@@ -1212,7 +1229,7 @@
         ELEMENTS.audio.inputs.forEach(input => {
             input.addEventListener('change', (e) => {
                 if (e.target.files.length > 0) {
-                    saveSound(e.target.dataset.sound, e.target.files[0]);
+                    saveSound(e.target.dataset.sound, e.target.files[0], e.target);
                 }
             });
         });
