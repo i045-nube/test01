@@ -197,20 +197,21 @@
         }
 
         .tab-btn {
-            width: 80px;
-            height: 60px;
-            border-radius: 12px;
-            /* Square with rounded corners */
+            width: 95px;
+            /* Increased by ~15%+ */
+            height: 72px;
+            /* Increased by ~15%+ */
+            border-radius: 14px;
             padding: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(40, 40, 40, 0.6);
-            /* Slightly lighter/more visible background */
-            border: 1px solid rgba(255, 220, 0, 0.3);
-            /* Subtle primary border */
-            color: #AAA;
-            /* Brighter default text */
+            background: rgba(60, 60, 60, 0.8);
+            /* Lighter, more evident */
+            border: 2px solid rgba(255, 220, 0, 0.5);
+            /* Thicker, brighter border */
+            color: #FFF;
+            /* White text for better contrast */
             font-family: var(--font-display);
             font-weight: var(--font-weight-bold);
             font-size: 1.4rem;
@@ -775,8 +776,8 @@
             }
 
             .tab-btn {
-                width: 60px;
-                height: 50px;
+                width: 70px;
+                height: 60px;
                 font-size: 1rem;
             }
 
@@ -1324,15 +1325,16 @@
                 const time = parseTime(ELEMENTS.inputs.classicTime.value);
                 if (time <= 0) return alert("Inserisci una durata valida.");
                 STATE.totalTime = time;
-                STATE.timeRemaining = STATE.prepTime;
-                STATE.status = 'prep';
+                STATE.timeRemaining = time; // Set directly to work time
+                STATE.status = 'work'; // Skip prep
             } else {
                 STATE.totalTime = 0;
-                STATE.status = 'prep';
-                STATE.timeRemaining = 3000;
+                STATE.status = 'work'; // Skip prep
+                STATE.timeRemaining = 0;
             }
 
             ELEMENTS.timer.container.classList.remove('hidden');
+            playSound('start'); // Play start sound immediately
             startLoop();
         });
 
