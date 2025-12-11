@@ -190,9 +190,10 @@
             width: 100%;
             max-width: 600px;
             margin-top: 1rem;
-            margin-bottom: 1rem;
-            padding: 0 1.5rem;
-            /* Extra padding for edge breathing room */
+            margin-bottom: 0.5rem;
+            /* Reduced bottom margin slightly */
+            padding: 0 1rem;
+            /* Aligns with config-form margin (0 1rem) */
         }
 
         .tab-btn {
@@ -204,9 +205,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(0, 0, 0, 0.6);
-            border: var(--glass-border);
-            color: #888;
+            background: rgba(40, 40, 40, 0.6);
+            /* Slightly lighter/more visible background */
+            border: 1px solid rgba(255, 220, 0, 0.3);
+            /* Subtle primary border */
+            color: #AAA;
+            /* Brighter default text */
             font-family: var(--font-display);
             font-weight: var(--font-weight-bold);
             font-size: 1.4rem;
@@ -429,8 +433,8 @@
             flex-direction: column;
             justify-content: flex-start;
             /* Align top to control spacing */
-            padding-top: 240px;
-            /* Push content down below header */
+            padding-top: 320px;
+            /* Push content down below header - increased spacing */
             align-items: center;
             background: rgba(12, 12, 12, 0.95);
             /* opacity slightly lower to see background mesh if needed, but clean */
@@ -777,7 +781,8 @@
             }
 
             .timer-display {
-                padding-top: 200px;
+                padding-top: 260px;
+                /* Reduced from 320px but more than previous 200px */
             }
         }
     </style>
@@ -1231,7 +1236,7 @@
                     ELEMENTS.timer.status.style.color = '#FFFFFF';
                 } else {
                     if (STATE.mode === 'emom') {
-                        ELEMENTS.timer.status.innerText = "ALLENATI";
+                        ELEMENTS.timer.status.innerText = "ZERO SCUSE";
                     } else if (STATE.mode === 'stopwatch') {
                         ELEMENTS.timer.status.innerText = "WORK";
                     } else {
