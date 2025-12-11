@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fitness Timer Pro - Grossi Edition</title>
+    <style>
+        :root {
+            --color-bg: #0C0C0C;
+            --color-bg-gradient: radial-gradient(circle at 50% 30%, #2a2a2a 0%, #000000 80%);
+            --color-primary: #FFDC00;
+            --color-primary-dim: #cca300;
+            --color-text: #FFFFFF;
+            --font-text: "Factoria", "Rockwell", "Roboto Slab", "Segoe UI", sans-serif;
+            --font-display: "Factoria", "Impact", "Arial Black", sans-serif;
+            --glow-primary: 0 0 20px rgba(255, 220, 0, 0.15);
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+
+            /* Heights */
+            --header-content-height: auto;
+            --footer-height: 80px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: var(--color-bg);
+            background-image: var(--color-bg-gradient);
+            color: var(--color-text);
+            font-family: var(--font-text);
+            font-weight: 500;
+            height: 100dvh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- BACKGROUND MESH --- */
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(255, 220, 0, 0.03) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: 0;
+            animation: pulseBg 10s infinite alternate;
+        }
+
+        @keyframes pulseBg {
+            0% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
+        /* --- LAYOUT UTILS --- */
+        .flex-col {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* --- HEADER SECTION --- */
+        /* Contains Logo -> Separator -> Tabs -> Title */
+        .app-header {
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+            width: 100%;
+            padding-bottom: 0.5rem;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
+        }
+
+        .logo-container {
+            padding: 10px 0;
+            text-align: center;
+            width: 100%;
+        }
+
+        .logo {
+            height: 90px;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.1));
+        }
+
+        .header-separator {
+            height: 3px;
+            background: var(--color-primary);
+            width: 100%;
+            /* Full width or controlled */
+            max-width: 600px;
+            box-shadow: 0 0 10px var(--color-primary);
+            margin-bottom: 1.5rem;
+            /* Gap between line and tabs */
+            opacity: 0.8;
+        }
+
+        /* --- TABS --- */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            /* Adjusted for symmetry with separators */
+            padding: 0 1rem;
+            width: 100%;
+        }
+
+        .tab-btn {
+            flex: 0 1 120px;
+            padding: 0.6rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: var(--glass-border);
+            color: #888;
+            font-family: var(--font-display);
+            font-weight: 900;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 6px;
+            letter-spacing: 1px;
+            backdrop-filter: blur(5px);
+        }
+
+        .tab-btn.active {
+            border-color: var(--color-primary);
+            color: var(--color-primary);
+            background: rgba(255, 220, 0, 0.08);
+            box-shadow: 0 0 10px rgba(255, 220, 0, 0.1);
+        }
+
+        /* --- PERSISTENT TITLE --- */
+        .title-container {
+            text-align: center;
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80px;
+            /* Pre-allocate space */
+        }
+
+        .title-main {
+            font-family: var(--font-display);
+            color: var(--color-primary);
+            font-size: 3.5rem;
+            /* Massive */
+            line-height: 0.9;
+            font-weight: 900;
+            /* Ultra */
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 4px 0 rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 220, 0, 0.4);
+            transform: scaleY(1.1);
+            /* Stretch to look "Ultra" */
+        }
+
+        .title-sub {
+            font-family: var(--font-display);
+            color: #FFFFFF;
+            font-size: 1.2rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            opacity: 0.9;
+            margin-top: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        /* --- MAIN CONTENT AREA --- */
+        .content-container {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            /* Items start below header */
+            z-index: 1;
+            overflow: hidden;
+            padding-top: 1rem;
+        }
+
+        /* --- FORMS --- */
+        .config-form {
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            animation: fadeIn 0.4s ease-out;
+            background: var(--glass-bg);
+            margin: 0 1rem;
+            border-radius: 12px;
+            border: var(--glass-border);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        label {
+            color: #AAA;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            text-align: center;
+        }
+
+        input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #444;
+            color: var(--color-primary);
+            padding: 0.8rem;
+            font-size: 1.8rem;
+            border-radius: 6px;
+            outline: none;
+            font-family: var(--font-display);
+            font-weight: 900;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--color-primary);
+            box-shadow: var(--glow-primary);
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .mode-toggle {
+            display: flex;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 6px;
+            padding: 4px;
+            border: 1px solid #333;
+        }
+
+        .mode-option {
+            flex: 1;
+            padding: 0.7rem;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 4px;
+            font-family: var(--font-display);
+            font-weight: 900;
+            color: #666;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .mode-option.selected {
+            background: var(--color-primary);
+            color: black;
+            box-shadow: 0 0 10px rgba(255, 220, 0, 0.4);
+        }
+
+        .btn-start {
+            background: var(--color-primary);
+            color: black;
+            border: none;
+            padding: 1.1rem;
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 0.5rem;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 var(--color-primary-dim);
+        }
+
+        .btn-start:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 0 var(--color-primary-dim);
+            filter: brightness(1.1);
+        }
+
+        .btn-start:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 var(--color-primary-dim);
+        }
+
+        /* --- TIMER OVERLAY (Inside Content) --- */
+        .timer-display {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(12, 12, 12, 0.9);
+            /* Darker to hide config behind */
+            backdrop-filter: blur(10px);
+            z-index: 10;
+            border-radius: 12px;
+            border: var(--glass-border);
+        }
+
+        .timer-status {
+            font-size: 2rem;
+            color: #FFFFFF;
+            text-transform: uppercase;
+            font-family: var(--font-display);
+            font-weight: 900;
+            letter-spacing: 2px;
+            margin-bottom: 2rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            padding: 0 1rem;
+        }
+
+        .time-big {
+            font-size: 20vw;
+            /* Slightly reduced to fit nicely */
+            line-height: 0.9;
+            font-family: var(--font-display);
+            font-weight: 900;
+            color: var(--color-primary);
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 0 30px rgba(255, 220, 0, 0.25);
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
+        }
+
+        .round-info {
+            font-size: 2.5rem;
+            color: white;
+            margin-top: 2rem;
+            font-family: var(--font-display);
+            font-weight: 900;
+            opacity: 0.5;
+        }
+
+        .paused-overlay {
+            position: absolute;
+            font-size: 3.5rem;
+            color: #FFFFFF;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 1rem 3rem;
+            border: 3px solid #FFFFFF;
+            font-family: var(--font-display);
+            font-weight: 900;
+            text-transform: uppercase;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+            z-index: 20;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            letter-spacing: 4px;
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+        }
+
+        .paused .paused-overlay {
+            opacity: 1;
+        }
+
+        .controls-container {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            z-index: 30;
+            pointer-events: none;
+        }
+
+        .control-btn {
+            pointer-events: auto;
+            background: rgba(0, 0, 0, 0.5);
+            color: #888;
+            border: 1px solid #444;
+            padding: 0.8rem 1.8rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+            font-family: var(--font-text);
+            font-weight: bold;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            min-width: 110px;
+        }
+
+        .control-btn:hover {
+            color: #fff;
+            border-color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .control-btn.btn-pause {
+            border-color: #FFFFFF;
+            color: #FFFFFF;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .control-btn.btn-pause:hover {
+            background: #FFFFFF;
+            color: black;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            height: var(--footer-height);
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1.5rem;
+            z-index: 2;
+            padding-bottom: 0.5rem;
+        }
+
+        .cta-btn {
+            display: inline-block;
+            padding: 0.7rem 1.5rem;
+            background: rgba(255, 220, 0, 0.05);
+            border: 1px solid rgba(255, 220, 0, 0.3);
+            color: var(--color-primary);
+            text-decoration: none;
+            font-weight: 500;
+            text-transform: uppercase;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+            backdrop-filter: blur(5px);
+        }
+
+        .cta-btn:hover {
+            background: var(--color-primary);
+            color: black;
+            box-shadow: 0 0 15px rgba(255, 220, 0, 0.3);
+        }
+
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: white;
+            transform: scale(1.05);
+        }
+
+        .icon-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+        }
+
+        .icon-btn.muted {
+            opacity: 0.5;
+            color: #888;
+            border-color: #444;
+        }
+
+        /* --- MODAL --- */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            padding: 1.5rem;
+        }
+
+        .modal.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: #151515;
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 360px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 1rem;
+        }
+
+        .modal-header h2 {
+            color: var(--color-primary);
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            text-transform: uppercase;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 2rem;
+            line-height: 1;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-modal:hover {
+            color: white;
+        }
+
+        .audio-setting {
+            margin-bottom: 1.2rem;
+        }
+
+        .audio-setting:last-child {
+            margin-bottom: 0;
+        }
+
+        .audio-setting label {
+            display: block;
+            text-align: left;
+            margin-bottom: 0.4rem;
+            font-size: 0.75rem;
+            color: #CCC;
+        }
+
+        .audio-input-wrapper {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 0.5rem;
+        }
+
+        .audio-input {
+            width: 100%;
+            font-size: 0.8rem;
+            color: #888;
+            background: transparent;
+            border: none;
+        }
+
+        .btn-reset-audio {
+            background: #222;
+            color: #888;
+            width: 100%;
+            padding: 0.8rem;
+            margin-top: 1.5rem;
+            border: 1px solid #333;
+            border-radius: 6px;
+            font-family: var(--font-text);
+            font-weight: bold;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-reset-audio:hover {
+            color: white;
+            border-color: #666;
+            background: #333;
+        }
+
+        /* --- MEDIA QUERIES --- */
+        @media (max-width: 380px) {
+            .title-main {
+                font-size: 2.8rem;
+            }
+
+            .time-big {
+                font-size: 18vw;
+            }
+
+            .tabs {
+                gap: 0.5rem;
+            }
+
+            .tab-btn {
+                padding: 0.5rem;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Audio Setup</h2>
+                <button class="close-modal" id="closeSettings">&times;</button>
+            </div>
+
+            <div class="audio-setting">
+                <label>Countdown (3-2-1)</label>
+                <div class="audio-input-wrapper">
+                    <input type="file" accept="audio/*" class="audio-input" data-sound="countdown">
+                </div>
+            </div>
+            <div class="audio-setting">
+                <label>Inizio Round (Go)</label>
+                <div class="audio-input-wrapper">
+                    <input type="file" accept="audio/*" class="audio-input" data-sound="start">
+                </div>
+            </div>
+            <div class="audio-setting">
+                <label>Fine Round</label>
+                <div class="audio-input-wrapper">
+                    <input type="file" accept="audio/*" class="audio-input" data-sound="end">
+                </div>
+            </div>
+            <div class="audio-setting">
+                <label>Fine Allenamento</label>
+                <div class="audio-input-wrapper">
+                    <input type="file" accept="audio/*" class="audio-input" data-sound="finish">
+                </div>
+            </div>
+
+            <button class="btn-reset-audio" id="resetAudio">RESET DEFAULT AUDIO</button>
+        </div>
+    </div>
+
+    <!-- APP HEADER -->
+    <div class="app-header">
+        <!-- 1. Logo -->
+        <div class="logo-container">
+            <img src="https://www.andrearighetti.fit/wp-content/uploads/2020/04/logo_andrea_righetti_bianco_Tavola-disegno-1.png"
+                alt="Logo" class="logo">
+        </div>
+
+        <!-- 2. Yellow Line -->
+        <div class="header-separator"></div>
+
+        <!-- 3. Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="emom">EMOM</button>
+            <button class="tab-btn" data-tab="classic">TIMER</button>
+        </div>
+
+        <!-- 4. Second Header Separator -->
+        <div class="header-separator"></div>
+
+        <!-- 5. Title (Dynamic) -->
+        <div class="title-container" id="titleContainer">
+            <div class="title-main" id="titleMain">EMOM</div>
+            <div class="title-sub">DEI GROSSI</div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="content-container">
+
+        <!-- EMOM CONFIG FORM -->
+        <div id="cfg-emom" class="config-form">
+            <div class="input-group">
+                <label>Durata Interval (mm:ss)</label>
+                <input type="text" id="emomTime" placeholder="es. 1:00" value="1:00">
+            </div>
+            <div class="input-group">
+                <label>Numero di Round</label>
+                <input type="number" id="emomRounds" placeholder="10" value="10">
+            </div>
+            <button class="btn-start" id="startEmom">START EMOM</button>
+        </div>
+
+        <!-- CLASSIC CONFIG FORM -->
+        <div id="cfg-classic" class="config-form hidden">
+            <div class="input-group">
+                <label>Modalità</label>
+                <div class="mode-toggle">
+                    <div class="mode-option selected" data-mode="countdown">COUNTDOWN</div>
+                    <div class="mode-option" data-mode="stopwatch">STOPWATCH</div>
+                </div>
+            </div>
+            <div class="input-group" id="classicTimeInput">
+                <label>Durata (mm:ss)</label>
+                <input type="text" id="classicTime" placeholder="es. 10:00" value="10:00">
+            </div>
+            <button class="btn-start" id="startClassic">START TIMER</button>
+        </div>
+
+        <!-- TIMER DISPLAY OVERLAY -->
+        <div id="timerDisplay" class="timer-display hidden">
+            <div class="timer-status" id="timerStatus">PREPARATI</div>
+            <div class="time-big" id="mainTime">00:00</div>
+            <div class="round-info hidden" id="roundInfo">Round 1/10</div>
+
+            <div class="paused-overlay">PAUSA</div>
+
+            <div class="controls-container">
+                <button class="control-btn" id="quitTimer">RESET</button>
+                <button class="control-btn btn-pause" id="pauseBtn">PAUSA</button>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <button class="icon-btn" id="toggleMute" title="Silenzia Audio">
+            <svg id="icon-speaker" viewBox="0 0 24 24">
+                <path
+                    d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+            </svg>
+            <svg id="icon-muted" class="hidden" viewBox="0 0 24 24">
+                <path
+                    d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73 4.27 3zM12 4L9.91 6.09 12 8.18V4z" />
+            </svg>
+        </button>
+
+        <a href="https://www.andrearighetti.fit" class="cta-btn" target="_blank">VISITA L'ACADEMY</a>
+
+        <button class="icon-btn" id="openSettings" title="Impostazioni Audio">
+            <svg viewBox="0 0 24 24">
+                <path
+                    d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z" />
+            </svg>
+        </button>
+    </footer>
+
+    <script>
+        /* --- CONSTANTS & STATE --- */
+        const DB_NAME = 'FitnessTimerAudioDB';
+        const STORE_NAME = 'audioFiles';
+
+        const STATE = {
+            mode: null,
+            status: 'idle',
+            paused: false,
+            muted: false,
+            timeRemaining: 0,
+            totalTime: 0,
+            currentRound: 1,
+            totalRounds: 1,
+            prepTime: 10000,
+            lastTick: 0,
+            intervalId: null
+        };
+
+        const ELEMENTS = {
+            titleMain: document.getElementById('titleMain'),
+            tabs: document.querySelectorAll('.tab-btn'),
+            forms: { emom: document.getElementById('cfg-emom'), classic: document.getElementById('cfg-classic') },
+            inputs: {
+                emomTime: document.getElementById('emomTime'),
+                emomRounds: document.getElementById('emomRounds'),
+                classicTime: document.getElementById('classicTime'),
+                classicModeOpts: document.querySelectorAll('.mode-option'),
+                classicTimeGroup: document.getElementById('classicTimeInput')
+            },
+            timer: {
+                container: document.getElementById('timerDisplay'),
+                status: document.getElementById('timerStatus'),
+                time: document.getElementById('mainTime'),
+                round: document.getElementById('roundInfo'),
+                quit: document.getElementById('quitTimer'),
+                pause: document.getElementById('pauseBtn')
+            },
+            audio: {
+                modal: document.getElementById('settingsModal'),
+                inputs: document.querySelectorAll('.audio-input'),
+                openBtn: document.getElementById('openSettings'),
+                closeBtn: document.getElementById('closeSettings'),
+                resetBtn: document.getElementById('resetAudio')
+            },
+            btns: {
+                startEmom: document.getElementById('startEmom'),
+                startClassic: document.getElementById('startClassic'),
+                toggleMute: document.getElementById('toggleMute')
+            },
+            icons: {
+                speaker: document.getElementById('icon-speaker'),
+                muted: document.getElementById('icon-muted')
+            }
+        };
+
+        const AUDIO_CACHE = {};
+        let audioCtx;
+        let db;
+
+        /* --- AUDIO SYSTEM --- */
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function initDB() {
+            const request = indexedDB.open(DB_NAME, 1);
+            request.onupgradeneeded = (e) => {
+                db = e.target.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    db.createObjectStore(STORE_NAME);
+                }
+            };
+            request.onsuccess = (e) => {
+                db = e.target.result;
+                loadAllCustomSounds();
+            };
+            request.onerror = (e) => console.error("DB Error", e);
+        }
+
+        function saveSound(key, file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const buffer = e.target.result;
+                const tx = db.transaction(STORE_NAME, 'readwrite');
+                const store = tx.objectStore(STORE_NAME);
+                store.put(buffer, key);
+                decodeAndCache(key, buffer);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function loadAllCustomSounds() {
+            const tx = db.transaction(STORE_NAME, 'readonly');
+            const store = tx.objectStore(STORE_NAME);
+            const request = store.openCursor();
+            request.onsuccess = (e) => {
+                const cursor = e.target.result;
+                if (cursor) {
+                    decodeAndCache(cursor.key, cursor.value);
+                    cursor.continue();
+                }
+            };
+        }
+
+        function decodeAndCache(key, arrayBuffer) {
+            if (!audioCtx) initAudio();
+            audioCtx.decodeAudioData(arrayBuffer.slice(0), (decodedBuffer) => {
+                AUDIO_CACHE[key] = decodedBuffer;
+            }, (e) => console.error("Error decoding audio", e));
+        }
+
+        function clearAudioDB() {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            store.clear();
+            Object.keys(AUDIO_CACHE).forEach(k => delete AUDIO_CACHE[k]);
+            alert("Audio resettato.");
+        }
+
+        function playTone(freq, type, duration) {
+            if (STATE.muted) return;
+            if (!audioCtx) initAudio();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.className = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function playSound(type) {
+            if (STATE.muted) return;
+            if (!audioCtx) initAudio();
+
+            if (AUDIO_CACHE[type]) {
+                const source = audioCtx.createBufferSource();
+                source.buffer = AUDIO_CACHE[type];
+                source.connect(audioCtx.destination);
+                source.start(0);
+                return;
+            }
+
+            switch (type) {
+                case 'countdown': playTone(880, 'sine', 0.1); break;
+                case 'start': playTone(1200, 'square', 0.6); break;
+                case 'end':
+                    playTone(440, 'sawtooth', 0.4);
+                    setTimeout(() => playTone(300, 'sawtooth', 0.4), 200);
+                    break;
+                case 'finish':
+                    playTone(523.25, 'triangle', 0.2);
+                    setTimeout(() => playTone(659.25, 'triangle', 0.2), 200);
+                    setTimeout(() => playTone(783.99, 'triangle', 0.2), 400);
+                    setTimeout(() => playTone(1046.50, 'square', 0.8), 600);
+                    break;
+            }
+        }
+
+        /* --- LOGIC UTILS --- */
+        function parseTime(input) {
+            if (!input) return 0;
+            if (input.includes(':')) {
+                const parts = input.split(':');
+                const m = parseInt(parts[0], 10) || 0;
+                const s = parseInt(parts[1], 10) || 0;
+                return (m * 60 + s) * 1000;
+            } else {
+                return parseFloat(input) * 60 * 1000;
+            }
+        }
+
+        function formatTime(ms) {
+            const totalSec = Math.ceil(ms / 1000);
+            const m = Math.floor(totalSec / 60);
+            const s = totalSec % 60;
+            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        /* --- TIMER ENGINE --- */
+        function startLoop() {
+            if (STATE.intervalId) cancelAnimationFrame(STATE.intervalId);
+            STATE.lastTick = performance.now();
+            STATE.paused = false;
+            ELEMENTS.timer.container.classList.remove('paused');
+            ELEMENTS.timer.pause.innerText = "PAUSA";
+            loop();
+        }
+
+        function loop() {
+            if (STATE.paused) return;
+            const now = performance.now();
+            const delta = now - STATE.lastTick;
+            STATE.lastTick = now;
+            updateTimer(delta);
+            STATE.intervalId = requestAnimationFrame(loop);
+        }
+
+        function updateTimer(delta) {
+            if (STATE.status === 'prep') {
+                STATE.timeRemaining -= delta;
+                if (STATE.timeRemaining <= 3100 && STATE.timeRemaining > 3000) playSound('countdown');
+                if (STATE.timeRemaining <= 2100 && STATE.timeRemaining > 2000) playSound('countdown');
+                if (STATE.timeRemaining <= 1100 && STATE.timeRemaining > 1000) playSound('countdown');
+
+                if (STATE.timeRemaining <= 0) {
+                    STATE.status = 'work';
+                    STATE.timeRemaining = STATE.mode === 'emom' ? STATE.totalTime : STATE.totalTime;
+                    playSound('start');
+                }
+            }
+            else if (STATE.status === 'work') {
+                if (STATE.mode === 'stopwatch') {
+                    STATE.timeRemaining += delta;
+                } else {
+                    STATE.timeRemaining -= delta;
+                    if (STATE.timeRemaining <= 3100 && STATE.timeRemaining > 3000) playSound('countdown');
+                    if (STATE.timeRemaining <= 2100 && STATE.timeRemaining > 2000) playSound('countdown');
+                    if (STATE.timeRemaining <= 1100 && STATE.timeRemaining > 1000) playSound('countdown');
+
+                    if (STATE.timeRemaining <= 0) {
+                        if (STATE.mode === 'emom') {
+                            if (STATE.currentRound < STATE.totalRounds) {
+                                STATE.currentRound++;
+                                STATE.timeRemaining = STATE.totalTime;
+                                playSound('start');
+                            } else {
+                                finishWorkout();
+                                return;
+                            }
+                        } else {
+                            finishWorkout();
+                            return;
+                        }
+                    }
+                }
+            }
+            render();
+        }
+
+        function finishWorkout() {
+            STATE.status = 'finished';
+            STATE.timeRemaining = 0;
+            cancelAnimationFrame(STATE.intervalId);
+            playSound('finish');
+            render();
+        }
+
+        function render() {
+            if (STATE.status === 'prep') {
+                ELEMENTS.timer.status.innerText = "PREPARATI";
+                ELEMENTS.timer.status.style.color = '#FFFFFF';
+                ELEMENTS.timer.time.innerText = Math.ceil(STATE.timeRemaining / 1000);
+            } else if (STATE.status === 'finished') {
+                if (STATE.mode === 'emom') {
+                    ELEMENTS.timer.status.innerText = "Adesso sei un po' più GROSSO";
+                } else {
+                    ELEMENTS.timer.status.innerText = "COMPLETATO";
+                }
+                ELEMENTS.timer.status.style.color = '#00FF00';
+                ELEMENTS.timer.time.innerText = "00:00";
+            } else {
+                if (STATE.paused) {
+                    ELEMENTS.timer.status.innerText = "PAUSA";
+                    ELEMENTS.timer.status.style.color = '#FFFFFF';
+                } else {
+                    if (STATE.mode === 'emom') {
+                        ELEMENTS.timer.status.innerText = "ALLENATI";
+                    } else if (STATE.mode === 'stopwatch') {
+                        ELEMENTS.timer.status.innerText = "WORK";
+                    } else {
+                        ELEMENTS.timer.status.innerText = "GO";
+                    }
+                    ELEMENTS.timer.status.style.color = '#FFFFFF';
+                }
+
+                ELEMENTS.timer.time.innerText = formatTime(STATE.timeRemaining);
+            }
+
+            if (STATE.mode === 'emom') {
+                ELEMENTS.timer.round.classList.remove('hidden');
+                ELEMENTS.timer.round.innerText = `Round ${STATE.currentRound}/${STATE.totalRounds}`;
+            } else {
+                ELEMENTS.timer.round.classList.add('hidden');
+            }
+        }
+
+        function togglePause() {
+            if (STATE.status === 'finished' || STATE.status === 'idle') return;
+            STATE.paused = !STATE.paused;
+            if (STATE.paused) {
+                cancelAnimationFrame(STATE.intervalId);
+                ELEMENTS.timer.container.classList.add('paused');
+                ELEMENTS.timer.pause.innerText = "RIPRENDI";
+            } else {
+                startLoop();
+            }
+            render();
+        }
+
+        /* --- UI CONTROLLERS --- */
+        ELEMENTS.tabs.forEach(btn => {
+            btn.addEventListener('click', () => {
+                ELEMENTS.tabs.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                if (btn.dataset.tab === 'emom') {
+                    ELEMENTS.forms.emom.classList.remove('hidden');
+                    ELEMENTS.forms.classic.classList.add('hidden');
+                    ELEMENTS.titleMain.innerText = "EMOM";
+                } else {
+                    ELEMENTS.forms.emom.classList.add('hidden');
+                    ELEMENTS.forms.classic.classList.remove('hidden');
+                    ELEMENTS.titleMain.innerText = "TIMER";
+                }
+            });
+        });
+
+        ELEMENTS.inputs.classicModeOpts.forEach(opt => {
+            opt.addEventListener('click', () => {
+                ELEMENTS.inputs.classicModeOpts.forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                let mode = opt.dataset.mode;
+                if (mode === 'stopwatch') {
+                    ELEMENTS.inputs.classicTimeGroup.classList.add('hidden');
+                } else {
+                    ELEMENTS.inputs.classicTimeGroup.classList.remove('hidden');
+                }
+            });
+        });
+
+        ELEMENTS.btns.startEmom.addEventListener('click', () => {
+            initAudio();
+            const time = parseTime(ELEMENTS.inputs.emomTime.value);
+            const rounds = parseInt(ELEMENTS.inputs.emomRounds.value) || 1;
+            if (time <= 0) return alert("Inserisci una durata valida.");
+
+            STATE.mode = 'emom';
+            STATE.totalTime = time;
+            STATE.totalRounds = rounds;
+            STATE.currentRound = 1;
+            STATE.timeRemaining = STATE.prepTime;
+            STATE.status = 'prep';
+
+            ELEMENTS.timer.container.classList.remove('hidden');
+            startLoop();
+        });
+
+        ELEMENTS.btns.startClassic.addEventListener('click', () => {
+            initAudio();
+            STATE.mode = document.querySelector('.mode-option.selected').dataset.mode;
+
+            if (STATE.mode === 'countdown') {
+                const time = parseTime(ELEMENTS.inputs.classicTime.value);
+                if (time <= 0) return alert("Inserisci una durata valida.");
+                STATE.totalTime = time;
+                STATE.timeRemaining = STATE.prepTime;
+                STATE.status = 'prep';
+            } else {
+                STATE.totalTime = 0;
+                STATE.status = 'prep';
+                STATE.timeRemaining = 3000;
+            }
+
+            ELEMENTS.timer.container.classList.remove('hidden');
+            startLoop();
+        });
+
+        ELEMENTS.timer.container.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') return;
+            togglePause();
+        });
+
+        ELEMENTS.timer.quit.addEventListener('click', (e) => {
+            e.stopPropagation();
+            cancelAnimationFrame(STATE.intervalId);
+            STATE.status = 'idle';
+            ELEMENTS.timer.container.classList.add('hidden');
+        });
+
+        ELEMENTS.timer.pause.addEventListener('click', (e) => {
+            e.stopPropagation();
+            togglePause();
+        });
+
+        ELEMENTS.audio.openBtn.addEventListener('click', () => ELEMENTS.audio.modal.classList.add('visible'));
+        ELEMENTS.audio.closeBtn.addEventListener('click', () => ELEMENTS.audio.modal.classList.remove('visible'));
+
+        ELEMENTS.btns.toggleMute.addEventListener('click', () => {
+            STATE.muted = !STATE.muted;
+            if (STATE.muted) {
+                ELEMENTS.icons.speaker.classList.add('hidden');
+                ELEMENTS.icons.muted.classList.remove('hidden');
+                ELEMENTS.btns.toggleMute.classList.add('muted');
+            } else {
+                ELEMENTS.icons.speaker.classList.remove('hidden');
+                ELEMENTS.icons.muted.classList.add('hidden');
+                ELEMENTS.btns.toggleMute.classList.remove('muted');
+            }
+        });
+
+        ELEMENTS.audio.inputs.forEach(input => {
+            input.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    saveSound(e.target.dataset.sound, e.target.files[0]);
+                }
+            });
+        });
+        ELEMENTS.audio.resetBtn.addEventListener('click', clearAudioDB);
+
+        initDB();
+    </script>
+</body>
+
+</html>
